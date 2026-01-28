@@ -1,9 +1,5 @@
 import { currentUser } from "@clerk/nextjs/server";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"; // Need to check if Card exists or simple div.
-// Shadcn init does not add Card. I should stick to standard HTML/Tailwind to avoid errors or add Card.
-// I'll "Create" standard UI components inline if needed or just use divs for now to be safe.
-// User said "Can use shadcn". I did init it. I must add components to use them. 
-// For speed, I'll use raw Tailwind for the basic structure.
+// import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 
 export default async function DashboardPage() {
     const user = await currentUser();
