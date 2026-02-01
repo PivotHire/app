@@ -52,11 +52,14 @@ export function Sidebar() {
     const getNavItems = (currentRole: UserRole | null): NavItem[] => {
         if (!currentRole) return [];
 
+        const dashboardItem = { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard };
         const settingsItem = { href: "/dashboard/settings", label: "Settings", icon: Settings };
 
         // Business Items
         const businessItems: NavItem[] = [
+            dashboardItem,
             { href: "/dashboard/projects", label: "Projects", icon: Briefcase },
+            { href: "/dashboard/profile", label: "Profile", icon: User },
             { href: "/dashboard/notifications", label: "Notifications", icon: Bell },
             { href: "/dashboard/billing", label: "Billing", icon: CreditCard },
             settingsItem,
@@ -65,6 +68,7 @@ export function Sidebar() {
 
         // Talent Items
         const talentItems: NavItem[] = [
+            dashboardItem,
             { href: "/dashboard/my-tasks", label: "My Tasks", icon: FileText },
             { href: "/dashboard/profile", label: "Profile", icon: User },
             { href: "/dashboard/verification", label: "Verification", icon: CheckCircle },
@@ -73,12 +77,13 @@ export function Sidebar() {
 
         // Admin Items
         const adminItems: NavItem[] = [
+            dashboardItem,
             { href: "/dashboard/users", label: "Users", icon: Users },
-            { href: "/dashboard/all-orders", label: "All Orders", icon: Briefcase },
-            { href: "/dashboard/projects", label: "Projects (All)", icon: LayoutDashboard },
-            { href: "/dashboard/verification", label: "Verification Queue", icon: CheckCircle },
+            { href: "/dashboard/all-orders", label: "Orders", icon: Briefcase },
+            { href: "/dashboard/projects", label: "Projects", icon: LayoutDashboard },
+            { href: "/dashboard/verification", label: "Verification", icon: CheckCircle },
             { href: "/dashboard/notifications", label: "Notifications", icon: Bell },
-            { href: "/dashboard/billing", label: "Billing Overview", icon: CreditCard },
+            { href: "/dashboard/billing", label: "Billing", icon: CreditCard },
             settingsItem,
         ];
 
@@ -132,11 +137,11 @@ export function Sidebar() {
                 {(role === UserRole.BUSINESS) && (
                     <div className="px-3 py-4">
                         <Link
-                            href="/dashboard/post-job"
+                            href="/dashboard/post-task"
                             className="flex w-full items-center justify-center gap-2 rounded-md bg-white px-4 py-2 text-sm font-semibold text-[#242424] hover:bg-gray-100 transition-colors"
                         >
                             <PlusCircle size={16} />
-                            Post a New Job
+                            Post a New Task
                         </Link>
                     </div>
                 )}
