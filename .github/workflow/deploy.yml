@@ -1,8 +1,15 @@
+name: Deploy PivotHire
+on:
+  push:
+    branches: [ main ]
+
 jobs:
   deploy:
     runs-on: self-hosted
     steps:
-      - uses: actions/checkout@v3
-      - name: Build and Update
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy to Docker
         run: |
           docker compose up -d --build
