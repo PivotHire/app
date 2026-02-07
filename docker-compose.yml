@@ -12,7 +12,7 @@ services:
     depends_on:
       - db
     environment:
-      - NODE_ENV=production
+      - NODE_ENV=development
       - DATABASE_URL=postgresql://pivothire_user:pivothire_postgresdb_pswd202506@db:5432/pivothire_prod?schema=public
 
   db:
