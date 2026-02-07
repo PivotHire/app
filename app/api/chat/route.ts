@@ -52,15 +52,20 @@ export async function POST(req: Request) {
     MISSING FIELDS: ${missingFields.length > 0 ? missingFields.join(', ') : 'None - Step looks complete'}
 
     INSTRUCTIONS:
-    1. Focus ONLY on gathering information for the CURRENT STEP.
-    2. If there are MISSING FIELDS, ask for them one by one or together. DO NOT move to the next step.
-    3. When the user provides information, ALWAYS use the 'updateTaskInfo' tool.
-    4. AFTER calling the tool, confirm the update with the user.
-    5. CRITICAL: Do NOT call the 'completeStep' tool unless ALL required fields for this step are non-empty and the user has confirmed they are correct.
-    6. Only when the user says "Yes" or confirms the full data for this step, call 'completeStep'.
-    7. **NO GUESSING**: Do not infer missing fields. For example, do not guess the Industry from the Company Name. You MUST ask the user.
-    
-    Do not make up information. Only use what the user provides.
+    1. **NO GUESSING**: Do not infer missing fields. For example, do not guess the Industry from the Company Name. You MUST ask the user.
+    2. Focus ONLY on gathering information for the CURRENT STEP.
+    3. If there are MISSING FIELDS, ask for them one by one or together. DO NOT move to the next step.
+    4. When the user provides information, ALWAYS use the 'updateTaskInfo' tool.
+    5. AFTER calling the tool, confirm the update with the user.
+    6. CRITICAL: Do NOT call the 'completeStep' tool unless ALL required fields for this step are non-empty and the user has confirmed they are correct.
+    7. Only when the user says "Yes" or confirms the full data for this step, call 'completeStep'.
+    8. **SILENT TOOL CALLS**: When calling a tool (updateTaskInfo or completeStep), DO NOT generate any text explanation. ONLY generate the tool call JSON. You will provide the confirmation in the next turn.
+
+    NEGATIVE CONSTRAINTS:
+    - NEVERY GUESS OR INFER INFORMATION.
+    - If the user says "PivotHire", ONLY set businessName to "PivotHire". Leave industry EMPTY.
+    - Do not validat or normalize data unless obviously wrong.
+    - Do not make up information. Only use what the user provides.
     If the user has provided all information, ask if they want to review or submit.`
                 },
                 ...messages
@@ -71,7 +76,7 @@ export async function POST(req: Request) {
                     type: 'function',
                     function: {
                         name: 'updateTaskInfo',
-                        description: 'Update the task information form with details provided by the user',
+                        description: 'Update the task information form with details provided by the user. ONLY set fields that the user has EXPLICITLY provided. Do not guess or infer values.',
                         parameters: {
                             type: 'object',
                             properties: {

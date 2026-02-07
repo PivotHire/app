@@ -1,3 +1,5 @@
+version: '3.8'
+
 services:
   web:
     build:
@@ -7,5 +9,22 @@ services:
     restart: always
     ports:
       - "3001:3000"
+    depends_on:
+      - db
     environment:
       - NODE_ENV=production
+      - DATABASE_URL=postgresql://pivothire_user:pivothire_postgresdb_pswd202506@db:5432/pivothire_prod?schema=public
+
+  db:
+    image: postgres:15-alpine
+    container_name: pivothire_db
+    restart: always
+    environment:
+      POSTGRES_USER: pivothire_user
+      POSTGRES_PASSWORD: pivothire_postgresdb_pswd202506
+      POSTGRES_DB: pivothire_prod
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:

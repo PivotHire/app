@@ -1,0 +1,162 @@
+// schema.prisma
+
+datasource db {
+  provider = "postgresql"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum UserRole {
+  ADMIN
+  BUSINESS
+  TALENT
+}
+
+enum FundingStatus {
+  BOOTSTRAPPED
+  PRE_SEED
+  SEED
+  SERIES_A
+  SERIES_B_PLUS
+  PUBLIC
+}
+
+enum TeamSize {
+  SIZE_1_10
+  SIZE_11_50
+  SIZE_51_200
+  SIZE_200_PLUS
+}
+
+enum EnglishProficiency {
+  CONVERSATIONAL
+  FLUENT
+  NATIVE
+}
+
+enum AvailabilityStatus {
+  ACTIVELY_LOOKING
+  OPEN_TO_OFFERS
+  UNAVAILABLE
+}
+
+enum TaxStatus {
+  US_PERSON_W9
+  FOREIGN_CONTRACTOR_W8BEN
+  CORPORATION
+}
+
+enum KycStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  NOT_STARTED
+}
+
+model User {
+  id        String   @id @default(cuid())
+  clerkId   String   @unique
+  email     String   @unique
+  role      UserRole @default(BUSINESS)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  businessProfile BusinessProfile?
+  talentProfile   TalentProfile?
+
+  businessBilling BusinessBilling?
+  talentBilling   TalentBilling?
+}
+
+model BusinessProfile {
+  id     String @id @default(cuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  contactName    String
+  jobTitle       String
+  techBackground Boolean        @default(false)
+  companyName    String
+  website        String?
+  linkedin       String?
+  industry       String?
+  fundingStatus  FundingStatus?
+  teamSize       TeamSize?
+  location       String?
+  timezone       String?
+
+  commPlatform String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model BusinessBilling {
+  id     String @id @default(cuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  legalEntityName String?
+  billingAddress  String?
+  city            String?
+  state           String?
+  zipCode         String?
+  country         String?
+
+  ein              String?
+  stripeCustomerId String?
+  paymentMethodId  String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model TalentProfile {
+  id     String @id @default(cuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  displayName String?
+  headline    String?
+  yearsOfExp  Int                @default(0)
+  english     EnglishProficiency @default(CONVERSATIONAL)
+  location    String?
+  timezone    String?
+
+  primarySkills String[]
+  otherSkills   String[]
+
+  portfolioUrl String?
+  githubUrl    String?
+  linkedinUrl  String?
+  resumeUrl    String?
+
+  desiredHourlyRate Int?
+  availabilityHrs   Int?
+  availabilityState AvailabilityStatus @default(ACTIVELY_LOOKING)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model TalentBilling {
+  id     String @id @default(cuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  legalFullName    String?
+  permanentAddress String?
+  dob              DateTime?
+
+  taxStatus            TaxStatus @default(FOREIGN_CONTRACTOR_W8BEN)
+  idVerificationStatus KycStatus @default(NOT_STARTED)
+  idDocumentUrl        String?
+
+  stripeAccountId String?
+  bankDetails     Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

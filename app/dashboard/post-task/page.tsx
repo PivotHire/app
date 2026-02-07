@@ -20,6 +20,14 @@ const STEPS = [
     "Review"
 ];
 
+const STEP_REQUIREMENTS: Record<string, string[]> = {
+    "Business Profile": ["businessName", "industry"],
+    "Project Info": ["projectTitle", "projectDescription"],
+    "Budget & Timeline": ["budget", "timeline"],
+    "Tech Stack": ["techStack"],
+    "Talent Preference": ["talentType"],
+};
+
 export default function PostTaskPage() {
     const [currentStep, setCurrentStep] = useState(0);
     const [formData, setFormData] = useState({
@@ -52,14 +60,17 @@ export default function PostTaskPage() {
     };
 
     // Helper to process chat with history
-    const processChat = async (history: any[]) => {
+    const processChat = async (history: any[], stepIndexOverride?: number) => {
         setIsLoading(true);
+        // Use override if provided, otherwise use current state (which might be stale during transitions)
+        const effectiveStepIndex = stepIndexOverride ?? currentStep;
+
         try {
             const response = await fetch('/api/chat', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    currentStepName: STEPS[currentStep],
+                    currentStepName: STEPS[effectiveStepIndex],
                     formData: formData, // Send current form data
                     messages: history.map(m => {
                         const msg: any = {
@@ -159,7 +170,11 @@ export default function PostTaskPage() {
 
             if (finalToolCalls.length > 0) {
                 // Update the assistant message with the full tool calls
+                // CRITICAL FIX: Clear content if tool calls exist to prevent double-talk (e.g. "Updating..." + "Updated")
+                // We only want to see the recursive response.
+                assistantMessage.content = "";
                 assistantMessage.tool_calls = finalToolCalls;
+
                 setMessages(prev => {
                     const newPrev = [...prev];
                     newPrev[newPrev.length - 1] = { ...assistantMessage };
@@ -169,26 +184,40 @@ export default function PostTaskPage() {
                 // Execute tools and generate tool results
                 const newHistory = [...history, assistantMessage];
 
+                // Track form data updates locally within this loop to handle dependent tool calls (e.g. update -> complete)
+                let currentFormData: any = { ...formData };
+                let shouldRecursivelyCall = true;
+
                 for (const toolCall of finalToolCalls) {
                     try {
                         const args = JSON.parse(toolCall.function.arguments);
+                        let resultContent = JSON.stringify({ success: true, updated: args });
+
                         // Execute on Client
                         if (toolCall.function.name === 'updateTaskInfo') {
                             setFormData(prev => ({ ...prev, ...args }));
+                            currentFormData = { ...currentFormData, ...args };
                         } else if (toolCall.function.name === 'completeStep') {
-                            // Trigger Next Step
-                            // We need to call handleNext, but it might be async/state dependent.
-                            // Since we are in the loop, we can't easily access the latest closure of handleNext if it depends on state 
-                            // that isn't ref-based, but handleNext mainly depends on 'currentStep' and 'STEPS'.
-                            // However, calling state updates in a loop is fine. 
-                            // We should defer this slightly or just call it.
-                            // Actually, we must be careful not to infinite loop if the AI keeps calling it.
-                            // But the AI should stop after calling it.
+                            // Validate before advancing
+                            const currentStepName = STEPS[effectiveStepIndex];
+                            const requiredFields = STEP_REQUIREMENTS[currentStepName] || [];
+                            const missingFields = requiredFields.filter(field => !currentFormData[field]);
 
-                            // Using a timeout to break stack or just calling it.
-                            setTimeout(() => {
-                                handleNext();
-                            }, 500);
+                            if (missingFields.length > 0) {
+                                // REJECT the step completion
+                                resultContent = JSON.stringify({
+                                    error: `Cannot complete step. Missing required fields: ${missingFields.join(', ')}. Please ask the user for this information.`
+                                });
+                            } else {
+                                // Trigger Next Step safely
+                                setTimeout(() => {
+                                    handleNext();
+                                }, 500);
+                                // CRITICAL FIX: Stop recursion. The handleNext() will trigger a new flow if needed, 
+                                // or the user will start the next step interactions. 
+                                // Continuing recursion here uses STALE state (currentStep) and causes loop/skipping.
+                                shouldRecursivelyCall = false;
+                            }
                         }
 
                         // Create Tool Result Message
@@ -197,7 +226,7 @@ export default function PostTaskPage() {
                             role: 'tool',
                             tool_call_id: toolCall.id,
                             name: toolCall.function.name,
-                            content: JSON.stringify({ success: true, updated: args })
+                            content: resultContent
                         };
                         newHistory.push(toolMessage);
                         setMessages(prev => [...prev, toolMessage]);
@@ -217,8 +246,12 @@ export default function PostTaskPage() {
                 }
 
                 // Recursively call processChat with the new history (tool results included) 
-                // to get the AI confirmation text.
-                await processChat(newHistory);
+                // to get the AI confirmation text, BUT ONLY IF we didn't just move steps.
+                if (shouldRecursivelyCall) {
+                    await processChat(newHistory, effectiveStepIndex);
+                } else {
+                    setIsLoading(false);
+                }
             } else {
                 setIsLoading(false);
             }
@@ -243,38 +276,23 @@ export default function PostTaskPage() {
 
     const handleNext = async () => {
         if (currentStep < STEPS.length - 1) {
-            setCurrentStep(prev => prev + 1);
+            const nextStepIndex = currentStep + 1;
+            setCurrentStep(nextStepIndex);
 
             // Notify AI that user moved to next step
-            const nextStepName = STEPS[currentStep + 1];
-            const systemNote = {
-                id: Date.now().toString(),
-                role: 'system', // or user, but system is hidden usually. 
-                // OpenAI API allows system messages in middle, but sometimes 'developer' or treating as user instruction is better.
-                // Let's use 'user' message but hidden from UI? 
-                // Or just append to history and process.
-                // User requested "Trigger next prompt".
-                content: `Using the 'Next' button, I have moved to the next step: "${nextStepName}". Please ask for the information required for this step.`
-            };
-
-            // We verify if we should show this message in UI. Ideally not, or as a system event. 
-            // For simplicity, we can add it as a user action but maybe styled differently, or just standard.
-            // Let's treat it as a user message for now so the user sees "I moved next".
-            // Actually, better to be invisible to user? 
-            // "Hidden trigger". 
-            // We can add it to 'messages' but mark it hidden if we want, OR just send it to backend but don't show in UI.
-            // But 'setMessages' drives the UI.
-            // Let's add it as a visible user message for clarity: "Moving to next step..."
+            const nextStepName = STEPS[nextStepIndex];
 
             const userMoveMessage = {
                 id: Date.now().toString(),
                 role: 'user',
-                content: `I am moving to the next step: ${nextStepName}.`
+                content: `Using the 'Next' button, I have moved to the next step: "${nextStepName}". Please ask for the information required for this step.`
             };
 
             const newHistory = [...messages, userMoveMessage];
             setMessages(newHistory);
-            await processChat(newHistory);
+
+            // Pass the explicit nextStepIndex to ensure AI knows we are in the NEW step
+            await processChat(newHistory, nextStepIndex);
         }
     };
 
