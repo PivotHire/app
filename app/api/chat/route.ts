@@ -1,10 +1,10 @@
 import OpenAI from 'openai';
 
-const openai = new OpenAI();
 // Allow streaming responses up to 30 seconds
 export const maxDuration = 30;
 
 export async function POST(req: Request) {
+    const openai = new OpenAI();
     const { messages, currentStepName, formData } = await req.json();
 
     // Define required fields for each step to guide the AI
