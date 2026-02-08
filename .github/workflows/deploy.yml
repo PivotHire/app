@@ -13,6 +13,7 @@ jobs:
       - name: Create .env file
         run: |
           echo "${{ secrets.ENV_FILE }}" > .env
+          cat .env
 
       - name: Deploy to Docker
         run: |
