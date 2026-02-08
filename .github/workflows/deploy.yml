@@ -16,5 +16,5 @@ jobs:
 
       - name: Deploy to Docker
         run: |
-          docker compose up -d --build
+          docker compose up -d --build --build-arg NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
           docker image prune -f
