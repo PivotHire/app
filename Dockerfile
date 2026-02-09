@@ -18,6 +18,10 @@ COPY . .
 ARG NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
 ENV NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=$NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
 RUN echo "=== DEBUG ENV VARS ===" && env | grep NEXT_ || echo "No NEXT_ variables found"
+
+# Generate Prisma Client
+RUN npx prisma generate
+
 RUN pnpm run build
 
 FROM base AS runner

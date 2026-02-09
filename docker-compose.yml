@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   web:
     env_file:
@@ -29,6 +27,8 @@ services:
       POSTGRES_USER: pivothire_user
       POSTGRES_PASSWORD: pivothire_postgresdb_pswd202506
       POSTGRES_DB: pivothire_prod
+    ports:
+      - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
 

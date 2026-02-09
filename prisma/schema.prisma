@@ -9,57 +9,57 @@ generator client {
 }
 
 enum UserRole {
-  ADMIN
-  BUSINESS
-  TALENT
+  admin
+  business
+  talent
 }
 
 enum FundingStatus {
-  BOOTSTRAPPED
-  PRE_SEED
-  SEED
-  SERIES_A
-  SERIES_B_PLUS
-  PUBLIC
+  bootstrapped
+  pre_seed
+  seed
+  series_a
+  series_b_plus
+  public
 }
 
 enum TeamSize {
-  SIZE_1_10
-  SIZE_11_50
-  SIZE_51_200
-  SIZE_200_PLUS
+  size_1_10
+  size_11_50
+  size_51_200
+  size_200_plus
 }
 
 enum EnglishProficiency {
-  CONVERSATIONAL
-  FLUENT
-  NATIVE
+  conversational
+  fluent
+  native
 }
 
 enum AvailabilityStatus {
-  ACTIVELY_LOOKING
-  OPEN_TO_OFFERS
-  UNAVAILABLE
+  actively_looking
+  open_to_offers
+  unavailable
 }
 
 enum TaxStatus {
-  US_PERSON_W9
-  FOREIGN_CONTRACTOR_W8BEN
-  CORPORATION
+  us_person_w9
+  foreign_contractor_w8ben
+  corporation
 }
 
 enum KycStatus {
-  PENDING
-  APPROVED
-  REJECTED
-  NOT_STARTED
+  pending
+  approved
+  rejected
+  not_started
 }
 
 model User {
   id        String   @id @default(cuid())
   clerkId   String   @unique
   email     String   @unique
-  role      UserRole @default(BUSINESS)
+  role      UserRole @default(business)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -121,7 +121,7 @@ model TalentProfile {
   displayName String?
   headline    String?
   yearsOfExp  Int                @default(0)
-  english     EnglishProficiency @default(CONVERSATIONAL)
+  english     EnglishProficiency @default(conversational)
   location    String?
   timezone    String?
 
@@ -135,7 +135,7 @@ model TalentProfile {
 
   desiredHourlyRate Int?
   availabilityHrs   Int?
-  availabilityState AvailabilityStatus @default(ACTIVELY_LOOKING)
+  availabilityState AvailabilityStatus @default(actively_looking)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -150,8 +150,8 @@ model TalentBilling {
   permanentAddress String?
   dob              DateTime?
 
-  taxStatus            TaxStatus @default(FOREIGN_CONTRACTOR_W8BEN)
-  idVerificationStatus KycStatus @default(NOT_STARTED)
+  taxStatus            TaxStatus @default(foreign_contractor_w8ben)
+  idVerificationStatus KycStatus @default(not_started)
   idDocumentUrl        String?
 
   stripeAccountId String?
