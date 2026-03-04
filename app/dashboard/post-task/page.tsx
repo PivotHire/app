@@ -1,22 +1,24 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
-import { ArrowLeft, ArrowRight, Send, CheckCircle2, User } from "lucide-react";
+import { ArrowLeft, ArrowRight, Send, CheckCircle2, User, Loader2 } from "lucide-react";
 import Image from "next/image";
 import { toast } from "sonner";
 import ReactMarkdown from 'react-markdown';
+import { submitTask } from "@/app/actions/projects";
 
 const STEPS = [
     "Business Profile",
     "Project Info",
     "Budget & Timeline",
     "Tech Stack",
-    "Talent Preference",
+    "Other Requirements",
     "Review"
 ];
 
@@ -25,11 +27,13 @@ const STEP_REQUIREMENTS: Record<string, string[]> = {
     "Project Info": ["projectTitle", "projectDescription"],
     "Budget & Timeline": ["budget", "timeline"],
     "Tech Stack": ["techStack"],
-    "Talent Preference": ["talentType"],
+    "Other Requirements": ["otherRequirements"],
 };
 
 export default function PostTaskPage() {
+    const router = useRouter();
     const [currentStep, setCurrentStep] = useState(0);
+    const [isSubmitting, setIsSubmitting] = useState(false);
     const [formData, setFormData] = useState({
         businessName: "",
         industry: "",
@@ -38,7 +42,7 @@ export default function PostTaskPage() {
         budget: "",
         timeline: "",
         techStack: "",
-        talentType: ""
+        otherRequirements: ""
     });
 
     const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -329,7 +333,28 @@ export default function PostTaskPage() {
         }
     };
 
+    const handleSubmitTask = async () => {
+        setIsSubmitting(true);
+        try {
+            const result = await submitTask(formData);
+            toast.success('Task submitted successfully!');
+            router.push(`/dashboard/projects/${result.id}`);
+        } catch (error: any) {
+            console.error('Submit error:', error);
+            toast.error(error.message || 'Failed to submit task');
+            setIsSubmitting(false);
+        }
+    };
+
     const isReview = currentStep === STEPS.length - 1;
+
+    // Check if the current step's required fields are all filled
+    const isCurrentStepComplete = (() => {
+        if (isReview) return true;
+        const currentStepName = STEPS[currentStep];
+        const requiredFields = STEP_REQUIREMENTS[currentStepName] || [];
+        return requiredFields.every(field => !!(formData as any)[field]);
+    })();
 
     return (
         <div className="flex h-[calc(100vh-4rem)] flex-col space-y-4 relative pb-20">
@@ -589,20 +614,21 @@ export default function PostTaskPage() {
                                     </div>
                                 )}
 
-                                {/* Step 5: Talent Preference (New) */}
+                                {/* Step 5: Other Requirements */}
                                 {(currentStep >= 4 || isReview) && (
                                     <div className={`space-y-3 ${currentStep > 4 && !isReview ? "opacity-70" : ""}`}>
                                         <div className="flex items-center gap-2 font-medium text-[#242424]">
                                             <div className="flex h-5 w-5 items-center justify-center rounded-full bg-gray-100 text-xs">5</div>
-                                            Talent Preference
+                                            Other Requirements
                                         </div>
                                         <div className="grid gap-2 pl-7">
                                             <div className="grid gap-1">
-                                                <label className="text-xs font-medium text-gray-500">Talent Type</label>
-                                                <Input
-                                                    value={formData.talentType}
-                                                    onChange={(e) => setFormData({ ...formData, talentType: e.target.value })}
-                                                    placeholder="Senior, Junior, Agency..."
+                                                <label className="text-xs font-medium text-gray-500">Requirements</label>
+                                                <Textarea
+                                                    value={formData.otherRequirements}
+                                                    onChange={(e) => setFormData({ ...formData, otherRequirements: e.target.value })}
+                                                    placeholder="Talent preferences, seniority level, special needs..."
+                                                    className="min-h-[80px]"
                                                     disabled={currentStep > 4 && !isReview}
                                                 />
                                             </div>
@@ -633,14 +659,30 @@ export default function PostTaskPage() {
             </div>
 
             <div className="absolute bottom-6 right-8 z-20">
-                <Button
-                    size="lg"
-                    onClick={handleNext}
-                    className="min-w-[120px] bg-[#242424] text-white shadow-lg hover:bg-[#242424]/90"
-                >
-                    {isReview ? "Submit Task" : "Next Step"}
-                    <ArrowRight size={16} className="ml-2" />
-                </Button>
+                {isReview ? (
+                    <Button
+                        size="lg"
+                        onClick={handleSubmitTask}
+                        disabled={isSubmitting}
+                        className="min-w-[120px] bg-emerald-600 text-white shadow-lg hover:bg-emerald-700"
+                    >
+                        {isSubmitting ? (
+                            <><Loader2 size={16} className="mr-2 animate-spin" />Submitting...</>
+                        ) : (
+                            <>Submit Task<CheckCircle2 size={16} className="ml-2" /></>
+                        )}
+                    </Button>
+                ) : (
+                    <Button
+                        size="lg"
+                        onClick={handleNext}
+                        disabled={!isCurrentStepComplete || isLoading}
+                        className="min-w-[120px] bg-[#242424] text-white shadow-lg hover:bg-[#242424]/90 disabled:opacity-40"
+                    >
+                        Next Step
+                        <ArrowRight size={16} className="ml-2" />
+                    </Button>
+                )}
             </div>
         </div>
     );

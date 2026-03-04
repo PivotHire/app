@@ -27,7 +27,7 @@ import { toast } from 'sonner';
 
 const helpSchema = z.object({
     category: z.enum(['Bug', 'Suggestion', 'Other'], {
-        required_error: 'Please select a category.',
+        message: 'Please select a category.',
     }),
     title: z.string().min(1, 'Title is required.').max(100, 'Title is too long.'),
     description: z.string().min(10, 'Description must be at least 10 characters.'),

@@ -13,7 +13,7 @@ export async function POST(req: Request) {
         "Project Info": ["projectTitle", "projectDescription"],
         "Budget & Timeline": ["budget", "timeline"],
         "Tech Stack": ["techStack"],
-        "Talent Preference": ["talentType"],
+        "Other Requirements": ["otherRequirements"],
     };
 
     const currentRequirements = stepRequirements[currentStepName] || [];
@@ -29,7 +29,7 @@ export async function POST(req: Request) {
     let response;
     try {
         response = await openai.chat.completions.create({
-            model: 'gpt-5-mini-2025-08-07',
+            model: 'gpt-5-nano-2025-08-07',
             messages: [
                 {
                     role: 'system',
@@ -41,7 +41,7 @@ export async function POST(req: Request) {
     2. Project Info (Title, Description)
     3. Budget & Timeline
     4. Tech Stack
-    5. Talent Preference (Seniority, Agency/Freelancer)
+    5. Other Requirements (Talent preferences, seniority level, agency/freelancer preference, special needs, etc.)
     
     CURRENT STEP: "${currentStepName || 'Unknown'}"
     REQUIRED FIELDS FOR THIS STEP: ${currentRequirements.join(', ')}
@@ -55,16 +55,17 @@ export async function POST(req: Request) {
     1. **NO GUESSING**: Do not infer missing fields. For example, do not guess the Industry from the Company Name. You MUST ask the user.
     2. Focus ONLY on gathering information for the CURRENT STEP.
     3. If there are MISSING FIELDS, ask for them one by one or together. DO NOT move to the next step.
-    4. When the user provides information, ALWAYS use the 'updateTaskInfo' tool.
+    4. When the user provides information, ALWAYS use the 'updateTaskInfo' tool. You should rephrase the user's input to match the expected format and everything in English. Write everything in a professional tone. Ask for confirmation if you are not sure.
     5. AFTER calling the tool, confirm the update with the user.
     6. CRITICAL: Do NOT call the 'completeStep' tool unless ALL required fields for this step are non-empty and the user has confirmed they are correct.
     7. Only when the user says "Yes" or confirms the full data for this step, call 'completeStep'.
     8. **SILENT TOOL CALLS**: When calling a tool (updateTaskInfo or completeStep), DO NOT generate any text explanation. ONLY generate the tool call JSON. You will provide the confirmation in the next turn.
+    9. **AUTOMATIC STEP COMPLETION**: If MISSING FIELDS is "None" and the user just confirmed (said yes, looks good, correct, confirmed, etc.), you MUST call 'completeStep' immediately. Do not ask again.
 
     NEGATIVE CONSTRAINTS:
-    - NEVERY GUESS OR INFER INFORMATION.
+    - NEVER GUESS OR INFER INFORMATION.
     - If the user says "PivotHire", ONLY set businessName to "PivotHire". Leave industry EMPTY.
-    - Do not validat or normalize data unless obviously wrong.
+    - Do not validate or normalize data unless obviously wrong.
     - Do not make up information. Only use what the user provides.
     If the user has provided all information, ask if they want to review or submit.`
                 },
@@ -87,7 +88,7 @@ export async function POST(req: Request) {
                                 budget: { type: 'string' },
                                 timeline: { type: 'string' },
                                 techStack: { type: 'string' },
-                                talentType: { type: 'string' },
+                                otherRequirements: { type: 'string' },
                             },
                         },
                     },
@@ -96,7 +97,7 @@ export async function POST(req: Request) {
                     type: 'function',
                     function: {
                         name: 'completeStep',
-                        description: 'Call this when the user has confirmed the information for the current step and is ready to move to the next step.',
+                        description: 'MUST call this when all required fields for the current step are filled and the user has confirmed. This advances to the next step.',
                         parameters: {
                             type: 'object',
                             properties: {},

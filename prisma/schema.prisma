@@ -55,6 +55,21 @@ enum KycStatus {
   not_started
 }
 
+enum ProjectStatus {
+  awaiting_match
+  in_progress
+  on_hold
+  completed
+  cancelled
+}
+
+enum MilestoneStatus {
+  pending
+  in_progress
+  completed
+  skipped
+}
+
 model User {
   id        String   @id @default(cuid())
   clerkId   String   @unique
@@ -63,11 +78,49 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  // Gitea OAuth2
+  giteaAccessToken  String?
+  giteaRefreshToken String?
+  giteaUsername     String?
+
   businessProfile BusinessProfile?
   talentProfile   TalentProfile?
 
   businessBilling BusinessBilling?
   talentBilling   TalentBilling?
+
+  projects Project[]
+}
+
+model Project {
+  id          String        @id @default(cuid())
+  name        String
+  description String?
+  status      ProjectStatus @default(awaiting_match)
+  demoUrl     String?
+  giteaOwner  String?
+  giteaRepo   String?
+
+  ownerId String
+  owner   User   @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  milestones Milestone[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Milestone {
+  id          String          @id @default(cuid())
+  projectId   String
+  project     Project         @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  title       String
+  description String?
+  status      MilestoneStatus @default(pending)
+  sortOrder   Int             @default(0)
+  completedAt DateTime?
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
 }
 
 model BusinessProfile {
