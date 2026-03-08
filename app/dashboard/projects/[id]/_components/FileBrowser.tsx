@@ -7,6 +7,8 @@ import {
     FileCode, FileText, FileJson, Image as ImageIcon,
     Loader2, FolderGit2, AlertCircle
 } from 'lucide-react';
+import SyntaxHighlighter from 'react-syntax-highlighter';
+import { github } from 'react-syntax-highlighter/dist/esm/styles/hljs';
 
 interface FileBrowserProps {
     giteaOwner: string | null;
@@ -227,6 +229,12 @@ export function FileBrowser({ giteaOwner, giteaRepo }: FileBrowserProps) {
         setFileContent(null);
         setFileLoading(true);
 
+        const isImage = /\.(png|jpe?g|gif|svg|webp|ico)$/i.test(path);
+        if (isImage) {
+            setFileLoading(false);
+            return;
+        }
+
         try {
             const res = await fetch(
                 `/api/gitea/file?owner=${giteaOwner}&repo=${giteaRepo}&path=${encodeURIComponent(path)}`
@@ -314,26 +322,54 @@ export function FileBrowser({ giteaOwner, giteaRepo }: FileBrowserProps) {
                 </div>
 
                 {/* File content */}
-                <div className="flex-1 overflow-auto">
+                <div className="flex flex-col flex-1 overflow-hidden bg-white">
                     {!selectedPath ? (
-                        <div className="flex h-full items-center justify-center">
+                        <div className="flex flex-1 items-center justify-center">
                             <p className="text-xs text-gray-400">Select a file to view its contents</p>
                         </div>
                     ) : fileLoading ? (
-                        <div className="flex h-full items-center justify-center">
+                        <div className="flex flex-1 items-center justify-center">
                             <Loader2 className="h-5 w-5 animate-spin text-gray-400" />
                         </div>
                     ) : (
-                        <div className="relative">
+                        <div className="flex flex-col flex-1 min-h-0 bg-white">
                             {/* File header */}
-                            <div className="sticky top-0 z-10 flex items-center gap-2 border-b border-gray-100 bg-gray-50/80 backdrop-blur-sm px-4 py-2">
+                            <div className="shrink-0 flex items-center gap-2 border-b border-gray-100 bg-gray-50/80 backdrop-blur-sm px-4 py-2">
                                 {getFileIcon(selectedPath.split('/').pop() || '')}
                                 <span className="text-xs font-medium text-gray-700">{selectedPath}</span>
                             </div>
-                            {/* Code content */}
-                            <pre className="p-4 text-xs leading-relaxed text-gray-700 font-mono overflow-x-auto">
-                                <code>{fileContent}</code>
-                            </pre>
+
+                            {/* File details area */}
+                            <div className="flex-1 overflow-auto bg-white text-xs border-t border-gray-100">
+                                {/\.(png|jpe?g|gif|svg|webp|ico)$/i.test(selectedPath) ? (
+                                    <div className="flex h-full items-center justify-center p-8 bg-gray-50/50">
+                                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                                        <img
+                                            src={`/api/gitea/file?owner=${giteaOwner}&repo=${giteaRepo}&path=${encodeURIComponent(selectedPath)}`}
+                                            alt={selectedPath}
+                                            className="max-w-full max-h-full object-contain rounded shadow-sm border border-gray-200 bg-white drop-shadow-sm"
+                                        />
+                                    </div>
+                                ) : (
+                                    <SyntaxHighlighter
+                                        language={getLanguage(selectedPath.split('/').pop() || '')}
+                                        style={github}
+                                        customStyle={{
+                                            margin: 0,
+                                            padding: '1rem',
+                                            backgroundColor: 'transparent',
+                                            fontSize: '0.8rem',
+                                            lineHeight: '1.6',
+                                            minHeight: '100%',
+                                        }}
+                                        showLineNumbers={true}
+                                        wrapLines={true}
+                                        lineProps={{ style: { backgroundColor: 'transparent' } }}
+                                    >
+                                        {fileContent || ''}
+                                    </SyntaxHighlighter>
+                                )}
+                            </div>
                         </div>
                     )}
                 </div>

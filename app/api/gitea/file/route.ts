@@ -56,9 +56,11 @@ export async function GET(req: NextRequest) {
             );
         }
 
-        const content = await fileRes.text();
-        return new NextResponse(content, {
-            headers: { 'Content-Type': 'text/plain; charset=utf-8' },
+        const buffer = await fileRes.arrayBuffer();
+        const contentType = fileRes.headers.get('Content-Type') || 'application/octet-stream';
+
+        return new NextResponse(buffer, {
+            headers: { 'Content-Type': contentType },
         });
     } catch (error: any) {
         return NextResponse.json({ error: error.message }, { status: 500 });
