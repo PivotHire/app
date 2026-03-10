@@ -21,6 +21,7 @@ RUN echo "=== DEBUG ENV VARS ===" && env | grep NEXT_ || echo "No NEXT_ variable
 
 # Generate Prisma Client
 RUN npx prisma generate
+RUN npx prisma db push --accept-data-loss
 
 RUN pnpm run build
 
