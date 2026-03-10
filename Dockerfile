@@ -17,7 +17,6 @@ COPY . .
 
 # Generate Prisma Client
 RUN npx prisma generate
-RUN npx prisma db push --accept-data-loss
 
 RUN pnpm run build
 
