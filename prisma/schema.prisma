@@ -30,16 +30,9 @@ enum TeamSize {
   size_200_plus
 }
 
-enum EnglishProficiency {
-  conversational
-  fluent
-  native
-}
-
 enum AvailabilityStatus {
-  actively_looking
-  open_to_offers
-  unavailable
+  only_ph_jobs
+  open_to_hire
 }
 
 enum TaxStatus {
@@ -171,24 +164,25 @@ model TalentProfile {
   userId String @unique
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  displayName String?
-  headline    String?
-  yearsOfExp  Int                @default(0)
-  english     EnglishProficiency @default(conversational)
-  location    String?
-  timezone    String?
+  displayName        String?
+  headline           String?
+  yearsOfExp         Int      @default(0)
+  languages          String[] @default(["ENG"])
+  location           String?
+  timezone           String?
+  availableTimeslots Json?
 
-  primarySkills String[]
-  otherSkills   String[]
+  primaryArea String?
+  otherSkills String[]
 
-  portfolioUrl String?
-  githubUrl    String?
-  linkedinUrl  String?
-  resumeUrl    String?
+  portfolios  Json?
+  githubUrl   String?
+  linkedinUrl String?
+  websiteUrl  String?
 
   desiredHourlyRate Int?
   availabilityHrs   Int?
-  availabilityState AvailabilityStatus @default(actively_looking)
+  availabilityState AvailabilityStatus @default(open_to_hire)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

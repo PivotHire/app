@@ -19,8 +19,8 @@ export function formatEnum(value: string | null | undefined): string {
         'foreign_contractor_w8ben': 'Foreign Contractor (W-8BEN)',
 
         // Availability
-        'actively_looking': 'Actively Looking',
-        'open_to_offers': 'Open to Offers',
+        'only_ph_jobs': 'Only PivotHire Jobs',
+        'open_to_hire': 'Open to Hire',
     };
 
     if (overrides[value]) {

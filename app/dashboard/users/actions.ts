@@ -2,6 +2,7 @@
 
 import { createClerkClient } from "@clerk/nextjs/server";
 import { UserRole } from "@/lib/roles";
+import prisma from "@/lib/prisma";
 
 const clerkClient = createClerkClient({ secretKey: process.env.CLERK_SECRET_KEY });
 
@@ -20,6 +21,13 @@ export async function updateUserRole(userId: string, role: UserRole) {
                 role,
             },
         });
+
+        // Also update our database if the user has already been synchronized
+        await prisma.user.updateMany({
+            where: { clerkId: userId },
+            data: { role: role as any },
+        });
+
         return { success: true };
     } catch (error) {
         console.error("Failed to update user role:", error);

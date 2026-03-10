@@ -28,11 +28,16 @@ async function ensureUserExists() {
 
     if (!dbUser) {
         console.log(`Creating user for ${email}`);
+
+        // If the role was already assigned in Clerk (e.g. by an Admin before the user first logged in), respect it
+        const roleFromClerk = user.publicMetadata?.role as UserRole | undefined;
+        const initialRole = roleFromClerk || UserRole.business;
+
         dbUser = await prisma.user.create({
             data: {
                 clerkId: user.id,
                 email: email,
-                role: UserRole.business,
+                role: initialRole,
             },
             include: {
                 businessProfile: true,

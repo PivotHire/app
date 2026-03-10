@@ -1,10 +1,11 @@
 import { SignUp } from "@clerk/nextjs";
 import Image from "next/image";
 import Link from "next/link";
+import { AuthRightSide } from "@/components/auth/AuthRightSide";
 
 export default function SignUpPage() {
     return (
-        <div className="flex h-screen w-full">
+        <div className="flex h-screen w-full bg-white">
             {/* Left Side - Form */}
             <div className="flex w-full flex-col justify-between bg-white p-8 lg:w-1/2">
                 <div>
@@ -45,19 +46,10 @@ export default function SignUpPage() {
             </div>
 
             {/* Right Side - Branding */}
-            <div className="hidden w-1/2 flex-col items-center justify-center bg-[#242424] p-12 text-white lg:flex">
-                <div className="max-w-md text-center">
-                    <h2 className="mb-4 text-3xl font-bold">
-                        Join the workforce revolution
-                    </h2>
-                    <p className="text-gray-300">
-                        Connect with top-tier engineering talent today
-                    </p>
-                    {/* Placeholder for future logos/diagrams */}
-                    <div className="mt-12 flex items-center justify-center rounded-lg bg-white/5 p-8 backdrop-blur-sm">
-                        <span className="text-sm opacity-50">[Dashboard Preview / Diagram Placeholder]</span>
-                    </div>
-                </div>
+            <div className="hidden w-1/2 p-6 lg:flex flex-col">
+                <AuthRightSide
+                    title="Build your borderless engineering team"
+                />
             </div>
         </div>
     );
