@@ -10,7 +10,8 @@ services:
     ports:
       - "3001:3000"
     depends_on:
-      - db
+      - db:
+        condition: service_healthy
 
   db:
     image: postgres:15-alpine
