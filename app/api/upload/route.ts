@@ -9,9 +9,8 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: "No file provided" }, { status: 400 });
         }
 
-        // In a Docker container, localhost refers to the container itself. 
-        // We must use the public domain or host.docker.internal to reach the host machine.
-        const openinaryUrl = process.env.OPENINARY_BASE_URL || "https://openinary.pivothire.tech";
+        // Use the internal docker network hostname "openinary" and its internal port 3000
+        const openinaryUrl = process.env.OPENINARY_INTERNAL_URL || "http://openinary:3000";
         const openinaryApiKey = process.env.OPENINARY_API_KEY;
 
         if (!openinaryApiKey) {
@@ -49,6 +48,17 @@ export async function POST(req: NextRequest) {
         }
 
         const result = await response.json();
+
+        // Safeguard to ensure internal docker URL doesn't leak to public clients
+        if (result.files && Array.isArray(result.files)) {
+            result.files = result.files.map((f: any) => {
+                if (f.url && f.url.includes("openinary:3000")) {
+                    f.url = f.url.replace(/http:\/\/openinary:3000/g, "https://openinary.pivothire.tech");
+                }
+                return f;
+            });
+        }
+
         return NextResponse.json(result, { status: 201 });
     } catch (error) {
         console.error("Error in upload API route:", error);
