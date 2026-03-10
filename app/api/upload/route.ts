@@ -34,6 +34,8 @@ export async function POST(req: NextRequest) {
             method: "POST",
             headers: {
                 Authorization: `Bearer ${openinaryApiKey}`,
+                "Host": "openinary.pivothire.tech",
+                "Origin": "https://openinary.pivothire.tech"
             },
             body: uploadData as unknown as BodyInit,
         });
