@@ -20,18 +20,10 @@ export async function POST(req: NextRequest) {
             );
         }
 
-        // We must extract the arrayBuffer to cleanly proxy the file
-        // Sometimes Node fetch fails to pipe the incoming File stream
-        let fileBlob: Blob | File;
-        if (file instanceof File) {
-            const buffer = await file.arrayBuffer();
-            fileBlob = new Blob([buffer], { type: file.type });
-        } else {
-            fileBlob = file as Blob;
-        }
-
+        // Simply pass the File object received from the client directly to the outgoing FormData
+        // Next.js (undici) natively supports piping `File` objects within `FormData` payloads
         const uploadData = new FormData();
-        uploadData.append("files", fileBlob, (file as File).name || "upload.jpg");
+        uploadData.append("files", file);
 
         // Optional: Extract a specific path/name from request if we want
         const destName = formData.get("name");
@@ -44,10 +36,7 @@ export async function POST(req: NextRequest) {
             headers: {
                 Authorization: `Bearer ${openinaryApiKey}`,
             },
-            body: uploadData,
-            // Disable duplex if supported by Node's fetch
-            // @ts-ignore
-            duplex: 'half'
+            body: uploadData
         });
 
         if (!response.ok) {
