@@ -50,11 +50,16 @@ export async function POST(req: NextRequest) {
 
         const result = await response.json();
 
-        // Safeguard to ensure internal docker URL doesn't leak to public clients
+        // Safeguard to ensure relative or internal docker URLs are properly mapped
+        // Openinary returns relative paths like "/t/test.jpg", we must make them absolute
         if (result.files && Array.isArray(result.files)) {
             result.files = result.files.map((f: any) => {
-                if (f.url && f.url.includes("openinary:3000")) {
-                    f.url = f.url.replace(/http:\/\/openinary:3000/g, "https://openinary.pivothire.tech");
+                if (f.url) {
+                    if (f.url.startsWith('/')) {
+                        f.url = `https://openinary.pivothire.tech${f.url}`;
+                    } else if (f.url.includes("openinary:3000")) {
+                        f.url = f.url.replace(/http:\/\/openinary:3000/g, "https://openinary.pivothire.tech");
+                    }
                 }
                 return f;
             });
