@@ -15,12 +15,14 @@ import { toast } from 'sonner';
 import { formatEnum } from '@/lib/formatters';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Plus, Trash2, Globe, Github, Linkedin, ExternalLink, Info } from 'lucide-react';
+import { ImageUpload } from '@/components/ui/image-upload';
 
 const talentSchema = z.object({
     displayName: z.string().min(2, "Name must be at least 2 characters."),
     headline: z.string().optional(),
     yearsOfExp: z.coerce.number().min(0).optional(),
     languages: z.array(z.string()),
+    avatarUrl: z.string().optional(),
     location: z.string().optional(),
     timezone: z.string().optional(),
     availableTimeslots: z.any().optional(),
@@ -175,6 +177,7 @@ export function TalentProfileForm({ initialData }: TalentProfileFormProps) {
             headline: initialData?.headline || '',
             yearsOfExp: initialData?.yearsOfExp || 0,
             languages: initialData?.languages || ['ENG'],
+            avatarUrl: initialData?.avatarUrl || '',
             location: initialData?.location || '',
             timezone: initialData?.timezone || '',
             availableTimeslots: initialData?.availableTimeslots || {},
@@ -297,9 +300,16 @@ export function TalentProfileForm({ initialData }: TalentProfileFormProps) {
                             {/* View Mode */}
                             <div className="flex flex-col sm:flex-row gap-6 justify-between items-start">
                                 <div className="flex flex-col sm:flex-row gap-6 items-center sm:items-start w-full">
-                                    <div className="h-24 w-24 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-3xl shrink-0">
-                                        {initialData?.displayName?.charAt(0)?.toUpperCase() || 'T'}
-                                    </div>
+                                    {initialData?.avatarUrl ? (
+                                        <div className="h-24 w-24 rounded-full overflow-hidden shrink-0 border-2 border-border shadow-sm">
+                                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                                            <img src={initialData.avatarUrl} alt={`${initialData.displayName} avatar`} className="w-full h-full object-cover" />
+                                        </div>
+                                    ) : (
+                                        <div className="h-24 w-24 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-3xl shrink-0">
+                                            {initialData?.displayName?.charAt(0)?.toUpperCase() || 'T'}
+                                        </div>
+                                    )}
                                     <div className="text-center sm:text-left space-y-2 flex-1">
                                         <div className="flex flex-col sm:flex-row sm:items-center gap-2 justify-between w-full">
                                             <h1 className="text-2xl sm:text-3xl font-bold">{initialData?.displayName || 'Unnamed Talent'}</h1>
@@ -407,6 +417,20 @@ export function TalentProfileForm({ initialData }: TalentProfileFormProps) {
                                                 <Input id="headline" placeholder="e.g. Senior Backend Engineer" {...form.register('headline')} />
                                             </div>
                                         </div>
+                                    </div>
+                                </div>
+
+                                {/* Profile Picture / Avatar */}
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 py-6 border-t border-transparent">
+                                    <div className="md:col-span-1">
+                                        <h3 className="text-sm font-medium">Profile picture</h3>
+                                        <p className="text-sm text-muted-foreground">Upload your avatar to display on your profile.</p>
+                                    </div>
+                                    <div className="md:col-span-2 w-full flex items-center">
+                                        <ImageUpload
+                                            value={form.watch('avatarUrl')}
+                                            onChange={(url) => form.setValue('avatarUrl', url, { shouldDirty: true })}
+                                        />
                                     </div>
                                 </div>
 
