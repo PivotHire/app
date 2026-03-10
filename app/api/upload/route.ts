@@ -9,8 +9,8 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: "No file provided" }, { status: 400 });
         }
 
-        // Use the internal docker network hostname "openinary" and its internal port 3000
-        const openinaryUrl = process.env.OPENINARY_INTERNAL_URL || "http://openinary:3000";
+        // Use the public domain of Openinary to communicate securely.
+        const openinaryUrl = process.env.OPENINARY_BASE_URL || "https://openinary.pivothire.tech";
         const openinaryApiKey = process.env.OPENINARY_API_KEY;
 
         if (!openinaryApiKey) {
@@ -30,12 +30,10 @@ export async function POST(req: NextRequest) {
             uploadData.append("names", destName);
         }
 
-        const response = await fetch(`${openinaryUrl}/upload`, {
+        const response = await fetch(`${openinaryUrl}/api/upload`, {
             method: "POST",
             headers: {
                 Authorization: `Bearer ${openinaryApiKey}`,
-                "Host": "openinary.pivothire.tech",
-                "Origin": "https://openinary.pivothire.tech"
             },
             body: uploadData as unknown as BodyInit,
         });
