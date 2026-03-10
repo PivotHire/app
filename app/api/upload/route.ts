@@ -9,7 +9,9 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: "No file provided" }, { status: 400 });
         }
 
-        const openinaryUrl = process.env.OPENINARY_BASE_URL || "http://localhost:3002";
+        // In a Docker container, localhost refers to the container itself. 
+        // We must use the public domain or host.docker.internal to reach the host machine.
+        const openinaryUrl = process.env.OPENINARY_BASE_URL || "https://openinary.pivothire.tech";
         const openinaryApiKey = process.env.OPENINARY_API_KEY;
 
         if (!openinaryApiKey) {
