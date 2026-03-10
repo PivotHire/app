@@ -125,6 +125,7 @@ model BusinessProfile {
   jobTitle       String
   techBackground Boolean        @default(false)
   companyName    String
+  logoUrl        String?
   website        String?
   linkedin       String?
   industry       String?
@@ -166,6 +167,7 @@ model TalentProfile {
 
   displayName        String?
   headline           String?
+  avatarUrl          String?
   yearsOfExp         Int      @default(0)
   languages          String[] @default(["ENG"])
   location           String?
