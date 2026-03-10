@@ -15,10 +15,6 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-ARG NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
-ENV NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=$NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
-RUN echo "=== DEBUG ENV VARS ===" && env | grep NEXT_ || echo "No NEXT_ variables found"
-
 # Generate Prisma Client
 RUN npx prisma generate
 RUN npx prisma db push --accept-data-loss
@@ -33,8 +29,13 @@ ENV NEXT_TELEMETRY_DISABLED 1
 
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/.next/standalone ./
+COPY --from=builder /app/node_modules ./node_modules 
+COPY --from=builder /app/prisma ./prisma
+COPY --from=builder /app/package.json ./package.json
 COPY --from=builder /app/.next/static ./.next/static
 
 EXPOSE 3000
 ENV PORT 3000
-CMD ["node", "server.js"]
+
+# TODO: change to npx prisma migrate deploy && node server.js
+CMD npx prisma db push --accept-data-loss && node server.js
