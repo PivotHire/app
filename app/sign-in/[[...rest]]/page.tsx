@@ -29,7 +29,7 @@ export default function SignInPage() {
                                         boxShadow: "none",
                                     },
                                     footer: "hidden",
-                                    header: "hidden", // Hide default header as we have custom text
+                                    header: "hidden",
                                     formButtonPrimary: 'bg-[#242424] text-white hover:bg-[#242424]/90',
                                     footerActionLink: 'text-[#242424] hover:text-[#242424]/90',
                                     formFieldInput: 'rounded-md border-gray-300',

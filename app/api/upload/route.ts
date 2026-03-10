@@ -20,9 +20,18 @@ export async function POST(req: NextRequest) {
             );
         }
 
-        // Forward the file as 'files' based on Openinary docs
+        // We must extract the arrayBuffer to cleanly proxy the file
+        // Sometimes Node fetch fails to pipe the incoming File stream
+        let fileBlob: Blob | File;
+        if (file instanceof File) {
+            const buffer = await file.arrayBuffer();
+            fileBlob = new Blob([buffer], { type: file.type });
+        } else {
+            fileBlob = file as Blob;
+        }
+
         const uploadData = new FormData();
-        uploadData.append("files", file);
+        uploadData.append("files", fileBlob, (file as File).name || "upload.jpg");
 
         // Optional: Extract a specific path/name from request if we want
         const destName = formData.get("name");
@@ -35,14 +44,17 @@ export async function POST(req: NextRequest) {
             headers: {
                 Authorization: `Bearer ${openinaryApiKey}`,
             },
-            body: uploadData as unknown as BodyInit,
+            body: uploadData,
+            // Disable duplex if supported by Node's fetch
+            // @ts-ignore
+            duplex: 'half'
         });
 
         if (!response.ok) {
             const errorText = await response.text();
             console.error("Openinary upload returned error:", response.status, errorText);
             return NextResponse.json(
-                { error: "Upload failed to destination" },
+                { error: "Upload failed to destination: " + errorText },
                 { status: response.status }
             );
         }
