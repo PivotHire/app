@@ -13,6 +13,7 @@ import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectVa
 import { toast } from 'sonner';
 import { formatEnum } from '@/lib/formatters';
 import { Globe, Linkedin } from 'lucide-react';
+import { ImageUpload } from '@/components/ui/image-upload';
 
 const businessSchema = z.object({
     contactName: z.string().min(2, { message: "Contact name must be at least 2 characters." }),
@@ -21,6 +22,7 @@ const businessSchema = z.object({
     website: z.string().optional().or(z.literal('')), // Removed strict .url() to allow easier prefixing
     linkedin: z.string().optional().or(z.literal('')), // Removed strict .url()
     industry: z.string().optional(),
+    logoUrl: z.string().optional(),
     fundingStatus: z.nativeEnum(FundingStatus).optional(),
     teamSize: z.nativeEnum(TeamSize).optional(),
     location: z.string().optional(),
@@ -61,6 +63,7 @@ export function BusinessProfileForm({ initialData }: BusinessProfileFormProps) {
             website: initialData?.website || '',
             linkedin: cleanLinkedin(initialData?.linkedin),
             industry: initialData?.industry || '',
+            logoUrl: initialData?.logoUrl || '',
             fundingStatus: initialData?.fundingStatus || undefined,
             teamSize: initialData?.teamSize || undefined,
             location: initialData?.location || '',
@@ -137,9 +140,16 @@ export function BusinessProfileForm({ initialData }: BusinessProfileFormProps) {
                         <>
                             <div className="flex flex-col sm:flex-row gap-6 justify-between items-start">
                                 <div className="flex flex-col sm:flex-row gap-6 items-center sm:items-start">
-                                    <div className="h-24 w-24 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-3xl shrink-0">
-                                        {initialData?.companyName?.charAt(0)?.toUpperCase() || 'C'}
-                                    </div>
+                                    {initialData?.logoUrl ? (
+                                        <div className="h-24 w-24 rounded-full overflow-hidden shrink-0 border-2 border-border shadow-sm">
+                                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                                            <img src={initialData.logoUrl} alt={`${initialData.companyName} logo`} className="w-full h-full object-cover" />
+                                        </div>
+                                    ) : (
+                                        <div className="h-24 w-24 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-3xl shrink-0">
+                                            {initialData?.companyName?.charAt(0)?.toUpperCase() || 'C'}
+                                        </div>
+                                    )}
                                     <div className="text-center sm:text-left space-y-2">
                                         <h1 className="text-2xl sm:text-3xl font-bold">{initialData?.companyName}</h1>
                                         <p className="text-muted-foreground text-lg">
@@ -221,31 +231,17 @@ export function BusinessProfileForm({ initialData }: BusinessProfileFormProps) {
                                     </div>
                                 </div>
 
-                                {/* Company Logo - Visual Stub */}
+                                {/* Company Logo */}
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 py-6">
                                     <div className="md:col-span-1">
                                         <h3 className="text-sm font-medium">Company logo</h3>
-                                        <p className="text-sm text-muted-foreground">Update your company logo and then choose where you want it to display.</p>
+                                        <p className="text-sm text-muted-foreground">Update your company logo to display on your profile.</p>
                                     </div>
-                                    <div className="md:col-span-2 w-full flex items-center gap-5">
-                                        <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xl shrink-0">
-                                            {form.getValues('companyName')?.charAt(0)?.toUpperCase() || 'C'}
-                                        </div>
-                                        <div className="flex-1 flex justify-center w-full rounded-md border border-dashed border-input px-6 py-4">
-                                            <div className="text-center">
-                                                <svg className="mx-auto h-12 w-12 text-muted-foreground" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                                                    <path fillRule="evenodd" d="M1.5 6a2.25 2.25 0 012.25-2.25h16.5A2.25 2.25 0 0122.5 6v12a2.25 2.25 0 01-2.25 2.25H3.75A2.25 2.25 0 011.5 18V6zM3 16.06V18c0 .414.336.75.75.75h16.5A.75.75 0 0021 18v-1.94l-2.69-2.689a1.5 1.5 0 00-2.12 0l-.88.879.97.97a.75.75 0 11-1.06 1.06l-5.16-5.159a1.5 1.5 0 00-2.12 0L3 16.061zm10.125-7.81a1.125 1.125 0 112.25 0 1.125 1.125 0 01-2.25 0z" clipRule="evenodd" />
-                                                </svg>
-                                                <div className="mt-4 flex text-sm leading-6 text-muted-foreground">
-                                                    <label htmlFor="file-upload" className="relative cursor-pointer rounded-md bg-transparent font-semibold text-primary hover:text-primary/80">
-                                                        <span>Click to upload</span>
-                                                        <input id="file-upload" name="file-upload" type="file" className="sr-only" disabled />
-                                                    </label>
-                                                    <p className="pl-1">or drag and drop</p>
-                                                </div>
-                                                <p className="text-xs leading-5 text-muted-foreground">SVG, PNG, JPG or GIF (max. 800x400px)</p>
-                                            </div>
-                                        </div>
+                                    <div className="md:col-span-2 w-full flex items-center">
+                                        <ImageUpload
+                                            value={form.watch('logoUrl')}
+                                            onChange={(url) => form.setValue('logoUrl', url, { shouldDirty: true })}
+                                        />
                                     </div>
                                 </div>
 
