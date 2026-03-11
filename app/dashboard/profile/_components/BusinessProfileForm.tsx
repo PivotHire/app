@@ -43,7 +43,10 @@ export function BusinessProfileForm({ initialData }: BusinessProfileFormProps) {
     // Helpers to strip/add LinkedIn prefix
     const cleanLinkedin = (url?: string | null) => {
         if (!url) return '';
-        let cleaned = url.replace(/^https?:\/\/(www\.)?linkedin\.com\/in\//i, '');
+        let cleaned = url.replace(/^https?:\/\/(www\.)?linkedin\.com\/company\//i, '');
+        cleaned = cleaned.replace(/^linkedin\.com\/company\//i, '');
+        // Also clean /in/ just in case legacy data has it
+        cleaned = cleaned.replace(/^https?:\/\/(www\.)?linkedin\.com\/in\//i, '');
         cleaned = cleaned.replace(/^linkedin\.com\/in\//i, '');
         return cleaned;
     };
@@ -51,7 +54,7 @@ export function BusinessProfileForm({ initialData }: BusinessProfileFormProps) {
     const buildLinkedin = (username?: string) => {
         if (!username) return '';
         if (username.startsWith('http') || username.startsWith('linkedin.com')) return username;
-        return `https://linkedin.com/in/${username}`;
+        return `https://linkedin.com/company/${username}`;
     };
 
     const form = useForm({
